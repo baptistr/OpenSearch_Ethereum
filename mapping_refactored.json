@@ -1,0 +1,19 @@
+{
+  "properties": {
+    "Date": {
+      "type": "date"
+    },"Open": {
+      "type": "float"
+    },"High": {
+      "type": "float"
+    },"Low": {
+      "type": "float"
+    },"Close": {
+      "type": "float"
+    },"Volume": {
+      "type": "float"
+    },"Market Cap": {
+      "type": "float"
+    }
+  }
+}
