@@ -292,6 +292,7 @@ Il est aussi assez intéressant de voir que la valeur minimale par an de l'Ether
 ```
 Le *doc_count* correspond au nombre de jours. Normalement la valeur doit se rapprocher du nombre de jours dans une année mais la première et dernière itération possède des nombres éloignés de ce qu'on voulait avoir car le dataset commence et se finit en milieu d'année.
 *tous les résultats :*
+
 Année | Prix minimal
 - |:-: 
 2015| **$0.42** 
@@ -299,7 +300,7 @@ Année | Prix minimal
 2017| **$7.98** 
 2018| **$82.82** 
 2019| **$102.93** 
-2020| **`$95.18`** 
+2020| **$95.18** 
 2021| **$718.10** 
 
 
