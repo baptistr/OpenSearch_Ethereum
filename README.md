@@ -19,7 +19,7 @@ Comme un document correspond à un jour et que nous avons 2152 valeurs, nous avo
 
 ## Intégration du dataset
 
-Pour pouvoir intégrer le dataset il a fallu convertir et modifier son contenu permettant d'obtenir la syntaxe recherché par Opensearch.
+Pour pouvoir intégrer le dataset il a fallu convertir et modifier son contenu permettant d'obtenir la syntaxe recherchée par Opensearch.
 Pour cela j'ai trouvé et adapté un script Python à mon dataset qui va me générer un nouveau fichier json:
 ```python
 import json
@@ -65,10 +65,13 @@ with open(out_file, 'w+') as outfile:
 ## Index et import du dataset
 
 Pour importer le dataset, il faut au préalable créer un index
+
 `
 curl -u admin:admin --insecure -XPUT "https://localhost:9200/<nom_de_votre_index>?pretty"
-`
+`  
+
 Dans un second temps il faut mapper les données pour vérifier la compatibilité des données
+
 *contenu du fichier de mapping (mapping_refactored.json) :*
 ```
 {
@@ -90,12 +93,12 @@ Dans un second temps il faut mapper les données pour vérifier la compatibilit�
     }
   }
 }
-```
+```  
 `
 curl -u admin:admin --insecure -XPUT "https://localhost:9200/<nom_de_votre_index>/_mapping?pretty" -H 'Content-Type: application/json' -d @<nom_de_votre_fichier_de_mapping>.json
 `
 
-Nous allons donc maintenant pouvoir indexer nos données dans Opensearch grâce à la méthode bulk :
+Nous allons donc maintenant pouvoir indexer nos données dans Opensearch grâce à la méthode bulk :  
 
 `
 curl -u admin:admin --insecure -XPUT https://localhost:9200/_bulk -H "Content-Type: application/json" --data-binary @<nom_de_votre_fichier_contenant_les_donnees>.json
@@ -103,7 +106,7 @@ curl -u admin:admin --insecure -XPUT https://localhost:9200/_bulk -H "Content-Ty
 
 ## Requêtes et Aggrégations
 
-*Je précise que me sers du logiciel Insomnia pour utiliser mes queries*
+*Je précise que me sers du logiciel Insomnia pour utiliser mes queries*  
 
 Pour introduire le dataset, nous allons commencer par récupérer les données du jour du listing d'Ethereum sur le marché financier de la cryptomonnaie, c'est à dire la date la plus vieille.
 
@@ -183,6 +186,7 @@ Une manière plus rapide d'obtenir ces informations :
 
 Nous pouvons donc apercevoir une grande différence entre les grandeurs des données des deux dates.
 Pour essayer d'y voir un peu plus clair, nous allons voir à quel point les nombres sont plus grands.
+
 ...
 
 Connaître la moyenne de prix sur une période donnée permet premièrement de voir à un instant t si la valeur évolue mais permet surtout de savoir où sont placés les supports et résistances dans les marchés financiers.
@@ -244,6 +248,7 @@ Pour la moyenne entre les 20 jours précédent une date comprise :
 ```
 
 Il est aussi assez intéressant de voir que la valeur minimale par an de l'Ethereum augmente chaque année (à une exception) :
+
 **INPUT**
 ```JSON
 {
@@ -291,18 +296,8 @@ Il est aussi assez intéressant de voir que la valeur minimale par an de l'Ether
 }
 ```
 Le *doc_count* correspond au nombre de jours. Normalement la valeur doit se rapprocher du nombre de jours dans une année mais la première et dernière itération possède des nombres éloignés de ce qu'on voulait avoir car le dataset commence et se finit en milieu d'année.
+
 *tous les résultats :*
-
-Année | Prix minimal
-- |:-: 
-2015| **$0.42** 
-2016| **$0.92** 
-2017| **$7.98** 
-2018| **$82.82** 
-2019| **$102.93** 
-2020| **$95.18** 
-2021| **$718.10** 
-
 | Année | Prix minimal |
 |:-----:|--------------|
 |  2015 |   **$0.42**  |
