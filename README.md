@@ -195,23 +195,23 @@ Pour la moyenne depuis 2015 :
 **INPUT**
 ```JSON
 {
-	"aggs":{
-		"calcul":{
-			"avg":{
-				"field":"Close"
-			}
-		}
-	}
+   "aggs":{
+      "calcul":{
+         "avg":{
+	    "field":"Close"
+	 }
+      }
+   }
 }
 ```
 **OUTPUT**
 ```JSON
 {
     "aggregations": {
-		"calcul": {
-			"value": 376.1153092069974
-		}
+       "calcul": {
+          "value": 376.1153092069974
 	}
+    }
 }
 ```
 Pour la moyenne entre les 20 jours précédent une date comprise :
@@ -227,23 +227,23 @@ Pour la moyenne entre les 20 jours précédent une date comprise :
           }
         }
     },
-	"aggs":{
-		"moyenne":{
-			"avg": {
+    "aggs":{
+        "moyenne":{
+	    "avg": {
                 "field": "Close"
             }
-		}
 	}
+    }
 }
 ```
 **OUTPUT**
 ```JSON
 {
     "aggregations": {
-		"moyenne": {
-			"value": 2253.8173246837796
-		}
+	"moyenne": {
+	    "value": 2253.8173246837796
 	}
+    }
 }
 ```
 
@@ -259,15 +259,15 @@ Il est aussi assez intéressant de voir que la valeur minimale par an de l'Ether
         "field": "Date",
         "interval": "year"
       },
-			"aggs":{
-				"calcul":{
-					"min":{
-						"field":"Low"
-					}
-				}
-			}
-		}
-	}
+      "aggs":{
+          "calcul":{
+	      "min":{
+	          "field":"Low"
+	      }
+	   }
+       }
+      }
+   }
 }
 ```
 **OUTPUT**
@@ -277,20 +277,20 @@ Il est aussi assez intéressant de voir que la valeur minimale par an de l'Ether
 	"logs_per_month": {
 		"buckets": [
 			{
-				"key_as_string": "2015-01-01T00:00:00.000Z",
-				"key": 1420070400000,
-				"doc_count": 147,
-				"calcul": {
-					"value": 0.4208970069885254
-				}
+			    "key_as_string": "2015-01-01T00:00:00.000Z",
+			    "key": 1420070400000,
+			    "doc_count": 147,
+			    "calcul": {
+				"value": 0.4208970069885254
+			    }
 			},
 			{
-				"key_as_string": "2016-01-01T00:00:00.000Z",
-				"key": 1451606400000,
-				"doc_count": 366,
-				"calcul": {
-					"value": 0.9298350214958191
-				}
+			    "key_as_string": "2016-01-01T00:00:00.000Z",
+			    "key": 1451606400000,
+			    "doc_count": 366,
+			    "calcul": {
+				"value": 0.9298350214958191
+			    }
 			},
 			...
 }
@@ -308,4 +308,84 @@ Le *doc_count* correspond au nombre de jours. Normalement la valeur doit se rapp
 |  2020 |   **$95.18**  |
 |  2021 |   **$718.10**  |
 
+Même si l'Ethereum a prit énormément de valeurs durant ces dernières années, je me suis donc demandé combien de jour il a perdu ou gagné. Nous pouvons trouver cela en regardant si son prix est a été supérieur entre le début et fin de journée :
 
+**INPUT**
+```JSON
+{
+    "size" : 0,
+    "query": {
+        "bool": {
+            "must": [{
+                "script": {
+                    "script": "doc['Close'].value > doc['Open'].value"
+                }
+            }]
+        }
+    }
+}
+```
+**OUTPUT**
+```JSON
+"hits": {
+   "total": {
+      "value": 1079,
+         "relation": "eq"
+      }
+```
+Nous en avons 1079, ce qui veut dire qu'il y 50,14% (1079/2152\*100) de jours qui se terminent positifs et 49,86 qui se terminent négatifs.
+
+En général une baisse du prix fait diminuer la capitalisation du marché, pour vérifier cela, je vais faire la moyenne du prix et la moyenne de la capitalisation du marché par mois pour minimiser le nombre d'exeptions.
+
+**INPUT**
+```JSON
+{
+  "size": 0,
+  "aggs": {
+    "logs_per_month": {
+      "date_histogram": {
+        "field": "Date",
+        "interval": "month"
+      },
+      "aggs":{
+          "prix_moyen":{
+              "avg":{
+	          "field":"Close"
+	      }		
+	  },
+	  "capitalisation_moyenne":{
+	      "avg":{
+	          "field":"Market Cap"
+	      }
+	  }
+      }
+     }
+  }
+}
+```
+**OUTPUT**
+```JSON
+{
+    "key_as_string": "2018-11-01T00:00:00.000Z",
+    "key": 1541030400000,
+    "doc_count": 30,
+    "prix_moyen": {
+        "value": 169.04776992797852
+    },
+    "capitalisation_moyenne": {
+	"value": 1.7442884608E10
+    }
+},
+    {
+    "key_as_string": "2018-12-01T00:00:00.000Z",
+    "key": 1543622400000,
+    "doc_count": 31,
+    "prix_moyen": {
+        "value": 108.99809732744771
+    },
+    "capitalisation_moyenne": {
+        "value": 1.1320000115612904E10
+    }
+}
+...
+```
