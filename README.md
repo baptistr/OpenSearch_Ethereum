@@ -212,7 +212,7 @@ Pour la moyenne depuis 2015 :
     }
 }
 ```
-Pour la moyenne entre les 20 jours précédents, date comprise :
+Pour la moyenne entre les 20 jours qui précédent une date (date comprise dans la moyenne) :
 
 **INPUT**
 ```JSON
