@@ -1,17 +1,18 @@
 # Ethereum et ses données
 
-**Pour reproduire le contenu du rendu, il vous faut obligatoirement [Opensearch](https://opensearch.org/ "Opensearch") d'installé.**
+**Pour reproduire le contenu du rendu, il vous faut obligatoirement [Opensearch](https://opensearch.org/ "Opensearch") et Docker d'installés.**
 
 ## Introduction
 
 J'ai utilisé ce [CSV](https://www.kaggle.com/deepshah16/meme-cryptocurrency-historical-data?select=Ethereum.csv "CSV") contenant donc des données numériques sur la cryptomonnaie Ethereum.
 Nous y trouvons :
+- (Date) Une date
 - (Open) Le prix d'ouverture de l'Ethereum le jour indiqué
 - (High) Le prix le plus élevé de l'Ethereum le jour indiqué
 - (Low) Le prix le plus bas de l'Ethereum le jour indiqué
 - (Close) Le prix de fermeture de l'Ethereum le jour indiqué
-- (Volume) Le volume de transactions en dollar en Ethereum le jour indiqué
-- (Market Cap) La capitalisation en dollar de l'Ethereum le jour indiqué
+- (Volume) Le volume de transactions en dollars pour l'Ethereum le jour indiqué
+- (Market Cap) La capitalisation en dollars pour l'Ethereum le jour indiqué
 
 Les informations que nous avons commencent le 7 Aout 2015, proche de la date de création d'Ethereum (30 Juillet 2015) et se terminent le 27 Juin 2021.
 Comme un document correspond à un jour et que nous avons 2152 valeurs, nous avons donc 2152 jours de données.
@@ -19,7 +20,7 @@ Comme un document correspond à un jour et que nous avons 2152 valeurs, nous avo
 
 ## Intégration du dataset
 
-Pour pouvoir intégrer le dataset il a fallu convertir et modifier son contenu permettant d'obtenir la syntaxe recherchée par Opensearch.
+Pour pouvoir intégrer le dataset il a fallu convertir et modifier son contenu permettant ainsi d'obtenir la syntaxe recherchée par Opensearch.
 Pour cela j'ai trouvé et adapté un script Python à mon dataset qui va me générer un nouveau fichier json:
 ```python
 import json
@@ -70,7 +71,7 @@ Pour importer le dataset, il faut au préalable créer un index
 curl -u admin:admin --insecure -XPUT "https://localhost:9200/<nom_de_votre_index>?pretty"
 `  
 
-Dans un second temps il faut mapper les données pour vérifier la compatibilité des données
+Dans un second temps, il faut mapper les données pour vérifier leurs compatibilités
 
 *contenu du fichier de mapping (mapping_refactored.json) :*
 ```
@@ -106,9 +107,9 @@ curl -u admin:admin --insecure -XPUT https://localhost:9200/_bulk -H "Content-Ty
 
 ## Requêtes et Aggrégations
 
-*Je précise que me sers du logiciel Insomnia pour utiliser mes queries*  
+*Je précise que je me sers du logiciel Insomnia pour utiliser mes queries*  
 
-Pour introduire le dataset, nous allons commencer par récupérer les données du jour du listing d'Ethereum sur le marché financier de la cryptomonnaie, c'est à dire la date la plus vieille.
+Pour introduire le dataset, nous allons commencer par récupérer les données du jour du listing d'Ethereum sur le marché financier de la cryptomonnaie, c'est à dire la date la plus éloignée.
 
 **INPUT**
 ```JSON
@@ -185,11 +186,8 @@ Une manière plus rapide d'obtenir ces informations :
 ```
 
 Nous pouvons donc apercevoir une grande différence entre les grandeurs des données des deux dates.
-Pour essayer d'y voir un peu plus clair, nous allons voir à quel point les nombres sont plus grands.
 
-...
-
-Connaître la moyenne de prix sur une période donnée permet premièrement de voir à un instant t si la valeur évolue mais permet surtout de savoir où sont placés les supports et résistances dans les marchés financiers.
+Connaître la moyenne de prix sur une période donnée permet premièrement de voir à un instant t si la valeur évolue mais permet surtout de savoir où sont placés les supports et résistances dans les marchés financiers :
 
 Pour la moyenne depuis 2015 :  
 **INPUT**
@@ -214,7 +212,7 @@ Pour la moyenne depuis 2015 :
     }
 }
 ```
-Pour la moyenne entre les 20 jours précédent une date comprise :
+Pour la moyenne entre les 20 jours précédents, date comprise :
 
 **INPUT**
 ```JSON
@@ -308,7 +306,7 @@ Le *doc_count* correspond au nombre de jours. Normalement la valeur doit se rapp
 |  2020 |   **$95.18**  |
 |  2021 |   **$718.10**  |
 
-Même si l'Ethereum a prit énormément de valeurs durant ces dernières années, je me suis donc demandé combien de jour il a perdu ou gagné. Nous pouvons trouver cela en regardant si son prix est a été supérieur entre le début et fin de journée :
+Même si l'Ethereum a pris énormément de valeurs durant ces dernières années, je me suis demandé combien de jours il a perdu ou gagné. Nous pouvons trouver cela en regardant si son prix a été supérieur entre le début (Open) et fin de journée (Close) :
 
 **INPUT**
 ```JSON
@@ -333,9 +331,9 @@ Même si l'Ethereum a prit énormément de valeurs durant ces dernières années
          "relation": "eq"
       }
 ```
-Nous en avons 1079, ce qui veut dire qu'il y 50,14% (1079/2152\*100) de jours qui se terminent positifs et 49,86 qui se terminent négatifs.
+Nous en avons 1079, ce qui veut dire qu'il y a 50,14% (1079/2152\*100) de jours qui se terminent positifs et 49,86 qui se terminent négatifs.
 
-En général une baisse du prix fait diminuer la capitalisation du marché, pour vérifier cela, je vais faire la moyenne du prix et la moyenne de la capitalisation du marché par mois pour minimiser le nombre d'exeptions.
+En général une baisse du prix fait diminuer la capitalisation du marché. Pour vérifier cela, je vais faire la moyenne du prix et la moyenne de la capitalisation du marché par mois pour minimiser le nombre d'exeptions.
 
 **INPUT**
 ```JSON
@@ -444,4 +442,48 @@ Maintenant, pour touver le nombre d'Ethereum en circulation sur le marché par j
     }
 },
 ...
+```
+
+OpenSearch nous propose des fonctionnalités permettant directement d'obtenir des statistiques sur les fields de notre choix, comme par exemple :
+**INPUT**
+```JSON
+{
+  "size": 0,
+  "aggs": {
+    "extended_stats_taxful_total_price": {
+      "extended_stats": {
+        "field": "Close"
+      }
+    }
+  }
+}
+```
+**OUTPUT**
+```JSON
+{
+    "aggregations": {
+        "extended_stats_taxful_total_price": {
+	    "count": 2152,
+	    "min": 0.4348289966583252,
+	    "max": 4168.701171875,
+	    "avg": 376.1153092069974,
+	    "sum": 809400.1454134583,
+	    "sum_of_squares": 1.0545528611111829E9,
+	    "variance": 348571.13157379715,
+	    "variance_population": 348571.13157379715,
+	    "variance_sampling": 348733.1823090709,
+	    "std_deviation": 590.3991290422075,
+	    "std_deviation_population": 590.3991290422075,
+	    "std_deviation_sampling": 590.5363513866617,
+	    "std_deviation_bounds": {
+	        "upper": 1556.9135672914124,
+	        "lower": -804.6829488774176,
+	        "upper_population": 1556.9135672914124,
+	        "lower_population": -804.6829488774176,
+	        "upper_sampling": 1557.1880119803209,
+	        "lower_sampling": -804.9573935663261
+	    }
+        }
+    }
+}
 ```
