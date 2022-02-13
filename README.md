@@ -191,7 +191,7 @@ Pour essayer d'y voir un peu plus clair, nous allons voir à quel point les nomb
 
 Connaître la moyenne de prix sur une période donnée permet premièrement de voir à un instant t si la valeur évolue mais permet surtout de savoir où sont placés les supports et résistances dans les marchés financiers.
 
-Pour la moyenne depuis 2015 :
+Pour la moyenne depuis 2015 :  
 **INPUT**
 ```JSON
 {
@@ -359,7 +359,7 @@ En général une baisse du prix fait diminuer la capitalisation du marché, pour
 	      }
 	  }
       }
-     }
+    }
   }
 }
 ```
@@ -387,5 +387,61 @@ En général une baisse du prix fait diminuer la capitalisation du marché, pour
         "value": 1.1320000115612904E10
     }
 }
+...
+```
+
+Maintenant, pour touver le nombre d'Ethereum en circulation sur le marché par jour, il suffit de diviser la capitalisation du marché par son prix :
+
+**INPUT**
+```JSON
+{
+  "size": 0,
+  "aggs": {
+    "logs_per_day": {
+      "date_histogram": {
+        "field": "Date",
+        "interval": "day"
+      },
+      "aggs":{
+          "prix_moyen":{
+              "avg":{
+	          "field":"Close"
+	      }		
+	  },
+	  "capitalisation_moyenne":{
+	      "avg":{
+	          "field":"Market Cap"
+	      }
+	  },
+	  "nombre_ethereum":{
+	      "bucket_script": {
+	          "buckets_path": {
+		      "my_var1": "prix_moyen",
+		      "my_var2": "capitalisation_moyenne"
+		  },
+	          "script":"params.my_var2 / params.my_var1"
+	      }
+	  }
+      }
+    }
+  }
+}
+```
+**OUTPUT**
+```JSON
+{
+    "key_as_string": "2018-04-02T00:00:00.000Z",
+    "key": 1522627200000,
+    "doc_count": 1,
+    "prix_moyen": {
+        "value": 386.42498779296875
+    },
+    "capitalisation_moyenne": {
+	"value": 3.8093279232E10
+    },
+    "nombre_ethereum": {
+	"value": 9.857871627185991E7
+    }
+},
 ...
 ```
