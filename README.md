@@ -445,6 +445,7 @@ Maintenant, pour touver le nombre d'Ethereum en circulation sur le marché par j
 ```
 
 OpenSearch nous propose des fonctionnalités permettant directement d'obtenir des statistiques sur les fields de notre choix, comme par exemple :
+
 **INPUT**
 ```JSON
 {
